@@ -1,0 +1,84 @@
+---
+title: "Covid19 status in India as of 24 April 2020"
+author: "Rohit Dnyansagar"
+date: "4/24/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r, load_libraries, warning=FALSE, message=F}
+
+# Load necessary packages
+pacman::p_load(tidyverse, geofacet, hrbrthemes)
+
+```
+
+## Read data
+```{r  message=F}
+india_covid <- read_csv(file.path(getwd(), "data", "Covid19_24Apr2020.csv"), col_names = T)
+
+```
+
+## Clean column names
+
+```{r}
+
+india_covid_clean <-  india_covid %>% 
+  rename(State = `Name Of State / UT`, 
+         Total_cases = `Total Confirmed Cases`,
+         Cured = `Cured/Discharged/Migrated`,
+         Id = `S. No.`,
+         Dead = Death) %>% select(-c( "Id", "Date" ,"DateTime"))
+```
+
+
+
+## Map clened data using facet_geo
+### Plot is big so cannot view in markdown. 
+### Run this block code in console and view the plot fullscreen
+```{r}
+  
+india_covid_clean %>% 
+  gather("Stat", "Value", -State) %>% 
+  ggplot(aes(x = Stat, y = Value, fill = Stat)) +
+  geom_col(position = "dodge") + 
+  theme_ipsum() + coord_flip() + 
+  scale_fill_ipsum()+ theme(legend.title = element_blank()) +
+  labs(x = "", y ="", title = "Corona status per Indian state ") +
+  facet_geo(~ State, grid = "india_grid1") 
+
+ 
+```
+
+## Union territories need to be considered separately
+
+facet_geo at this moment do not include Union territories on India. This would be abig issue as it excludes a major hub of Covid and thus needs to be considered separately. Also for some wierd reason it does not have Telangana
+
+
+```{r}
+uts <- c("Andaman and Nicobar Islands", "Chandigarh", "Delhi", "Ladakh", "Puducherry", "Telengana")
+india_covid_clean %>% 
+  filter(State %in% uts) %>% 
+  gather("Stat", "Value", -State) %>% 
+  ggplot(aes(x = Stat, y = Value, fill = Stat)) +
+  geom_col(position = "dodge") + 
+  theme_ipsum() + coord_flip() + 
+  scale_fill_ipsum()+ theme(legend.title = element_blank(),
+                            axis.text.x = element_text(angle = 45)) +
+  labs(x = "", y ="", title = "Corona status Indian UTs and Telangana ") +
+  facet_wrap(~State, ncol = 3)
+
+```
+
+## Conclusion 
+The india_grid1 and india_grid2 in the facet_geo needs an update as to properly represent current Indian states and union territories.
+
+
+#
+#
+
+#
