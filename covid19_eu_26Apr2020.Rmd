@@ -1,0 +1,55 @@
+---
+title: "Covid19 Time series"
+author: "Rohit Dnyansagar"
+date: "4/26/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Covid19 European Time series data analysis 
+
+## Read in data 
+```{r}
+c19world <- readr::read_csv("~/Dropbox/DataScience/COVID-19-geographic-disbtribution-worldwide.csv", col_names = T)
+```
+
+## Load necessary packages 
+
+```{r}
+pacman::p_load(tidyverse, lubridate, geofacet, hrbrthemes)
+```
+
+## Clean data and summarise
+
+```{r}
+covid19Europe <- c19world %>%  
+  filter(continentExp == "Europe") %>% 
+  mutate(countriesAndTerritories = ifelse(countriesAndTerritories == "United_Kingdom", 
+                                          "United Kingdom", countriesAndTerritories )) %>%
+  mutate(countriesAndTerritories = ifelse(countriesAndTerritories == "Czechia", 
+                                          "Czech Republic", countriesAndTerritories )) %>%
+  group_by(countriesAndTerritories, month=floor_date(dmy(dateRep), "2 days")) %>% 
+  summarize(cases=sum(cases)) %>% 
+  mutate(tot = cumsum(cases))
+
+```
+
+## Make geofacet plot
+
+```{r}
+covid19Europe %>% ggplot(aes(x = month, y = tot)) +
+  scale_color_ipsum() + scale_fill_ipsum() +
+  geom_step(size = 0.8) + theme_ipsum() +
+  theme(axis.text.y = element_text(size = 8))+
+  labs(x = "Covid19 Cases", y = "", 
+       title = "Covid19 status in Europe as of 26 April 2020",
+       subtitle = "Austria is flattening the curve") +
+  theme(plot.title = element_text(color="navy"), 
+        plot.subtitle = element_text(color="red")) +
+  facet_geo(~ countriesAndTerritories, 
+            grid = "eu_grid1", scales = "free_y")
+```
+

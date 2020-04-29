@@ -28,13 +28,24 @@ india_covid <- read_csv(file.path(getwd(), "data", "Covid19_24Apr2020.csv"), col
 ```{r}
 
 india_covid_clean <-  india_covid %>% 
-  rename(State = `Name Of State / UT`, 
+  dplyr::rename(State = `Name Of State / UT`, 
          Total_cases = `Total Confirmed Cases`,
          Cured = `Cured/Discharged/Migrated`,
          Id = `S. No.`,
-         Dead = Death) %>% select(-c( "Id", "Date" ,"DateTime"))
+         Dead = Death) %>% 
+  mutate(State = ifelse(State == "Telengana", "Telangana", State )) %>% 
+  dplyr::select(-c( "Id", "Date" ,"DateTime"))
 ```
 
+```{r}
+india_with_uts <- data.frame(
+  row = c(1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 6, 6, 6, 7, 7, 9, 9, 9, 9, 9, 9, 9),
+  col = c(3, 8, 3, 2, 4, 7, 5, 3, 8, 2, 6, 4, 4, 1, 3, 2, 8, 7, 5, 2, 8, 4, 3, 7, 4, 2, 3, 3, 4, 1, 2, 3, 4, 5, 6, 7),
+  code = c("JK", "AR", "HP", "PB", "UK", "AS", "BR", "HR", "NL", "RJ", "SK", "UP", "CG", "GJ", "JH", "MP", "MN", "ML", "WB", "MH", "MZ", "OD", "TS", "TR", "AP", "GA", "KA", "KL", "TN", "AN", "CH", "DD", "DL", "LA", "LD", "PY"),
+  name = c("Jammu and Kashmir", "Arunachal Pradesh", "Himachal Pradesh", "Punjab", "Uttarakhand", "Assam", "Bihar", "Haryana", "Nagaland", "Rajasthan", "Sikkim", "Uttar Pradesh", "Chhattisgarh", "Gujarat", "Jharkhand", "Madhya Pradesh", "Manipur", "Meghalaya", "West Bengal", "Maharashtra", "Mizoram", "Odisha", "Telangana", "Tripura", "Andhra Pradesh", "Goa", "Karnataka", "Kerala", "Tamil Nadu", "Andaman and Nicobar Islands", "Chandigarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Ladakh", "Lakshadweep", "Puducherry"),
+  stringsAsFactors = FALSE
+)
+```
 
 
 ## Map clened data using facet_geo
@@ -49,7 +60,7 @@ india_covid_clean %>%
   theme_ipsum() + coord_flip() + 
   scale_fill_ipsum()+ theme(legend.title = element_blank()) +
   labs(x = "", y ="", title = "Corona status per Indian state ") +
-  facet_geo(~ State, grid = "india_grid1") 
+  facet_geo(~ State, grid = india_with_uts) 
 
  
 ```
